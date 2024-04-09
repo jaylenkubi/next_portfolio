@@ -10,54 +10,51 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v2.3.2
-      
-    - name: Install pnpm
-      run: npm install -g pnpm@7.27.0
+      - name: Checkout Repo
+        uses: actions/checkout@v2.3.2
         
-    - name: Install Dependencies
-      run: |
-        pnpm install
+      - name: Install pnpm
+        run: npm install -g pnpm@7.27.0
         
-    - name: Build
-      run: |
-        pnpm run build
-      env:
-        CI: false
-        
-    - name: Archive Production Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: build
-        path: .next
-        
+      - name: Install Dependencies
+        run: |
+          pnpm install
+          
+      - name: Build
+        run: |
+          pnpm run build
+        env:
+          CI: false
+          
+      - name: Archive Production Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: .next
+          
   deploy:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v2.3.2
-      
-    - name: Download Artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: build
-        path: .next
+      - name: Checkout Repo
+        uses: actions/checkout@v2.3.2
         
-    - name: Install Firebase CLI
-      run: npm install -g firebase-tools
-
-    - name: Firebase Login
-      run: |
-        firebase login
-      
-    - name: Deploy to Firebase
-      run: |
-        firebase deploy --only hosting
-      env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: .next
+          
+      - name: Install pnpm
+        run: npm install -g pnpm@7.27.0
+        
+      - name: Install Firebase CLI
+        run: pnpm install -g firebase-tools
+        
+      - name: Deploy to Firebase
+        run: |
+          firebase deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
