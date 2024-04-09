@@ -1,0 +1,59 @@
+name: Firebase Deployment
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2.3.2
+      
+    - name: Install pnpm
+      run: npm install -g pnpm@7.27.0
+        
+    - name: Install Dependencies
+      run: |
+        pnpm install
+        
+    - name: Build
+      run: |
+        pnpm run build
+      env:
+        CI: false
+        
+    - name: Archive Production Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: .next
+        
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2.3.2
+      
+    - name: Download Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: build
+        path: .next
+        
+    - name: Install Firebase CLI
+      run: pnpm install -g firebase-tools
+      
+    - name: Deploy to Firebase
+      run: |
+        firebase deploy --only hosting --token ${{ secrets.FIREBASE_TOKEN }}
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
